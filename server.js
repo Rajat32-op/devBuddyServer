@@ -3,18 +3,22 @@ var cors=require('cors')
 const {checkLoggedinUser,generateToken,checkPassword,checkAlreadyExists, verifyGoogleToken}=require('./controllers/authenticate')
 const {registerUser}=require('./services/register')
 const jwt=require('jsonwebtoken')
+const cookie_parser=require('cookie-parser')
 
 const app = express()
 const port = 3000
 require('dotenv').config();
 const mongoose = require('mongoose');
 
-app.use(express.json())
-
 var corsConfig={
-  origin:"http://localhost:5173"
+  origin:"http://localhost:5173",
+  credentials:true
 }
 app.use(cors(corsConfig));
+
+app.use(cookie_parser())
+app.use(express.json())
+
 
 mongoose.connect(process.env.MONG_URL)
 .then(() => console.log('MongoDB connected!'))

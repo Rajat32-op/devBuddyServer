@@ -69,22 +69,28 @@ function generateToken(req,res){
         email:req.body.email
     }
     const token=jwt.sign(user,process.env.AUTH_SECRET_KEY)
-    res.json({token})
+    res.cookie("token", token, {
+            httpOnly: true,
+            secure: false, //set true when deploying
+            sameSite: "Lax",
+            maxAge: 24 * 60 * 60 * 1000, 
+    });
+    res.json({ message: "Login successful" });
 }
 
 function checkLoggedinUser(req,res,next){
-    const authHeader=req.headers.authorization;
-    if(!authHeader || !authHeader.startsWith('Bearer')){
-        res.status(401).json({error:"Unauthorized"});
+    const cookieToken=req.cookies.token;
+    if(!cookieToken){
+        res.json({error:"Unauthorized"});
     }
-    const token=authHeader.split(' ')[1];
+    
     try{
-        const user=jwt.verify(token,process.env.AUTH_SECRET_KEY);
+        const user=jwt.verify(cookieToken,process.env.AUTH_SECRET_KEY);
         req.user=user;
         next();
     }
     catch(err){
-        res.status(403).json({error:"Not a user"});
+        res.json({error:"Not a user"});
     }
 }
 module.exports={
