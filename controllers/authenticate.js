@@ -21,7 +21,6 @@ async function verifyGoogleToken(req,res) {
   const name = payload.name;
   const profile_url=payload.picture;
 
-  // 2. Check if user already exists
   let user = await User.findOne({ email });
 
   if (!user) {
@@ -32,7 +31,6 @@ async function verifyGoogleToken(req,res) {
     }
   }
 
-  // 4. Generate JWT token
   const jwtToken=jwt.sign(user,process.env.AUTH_SECRET_KEY);
 
   res.json({ token: jwtToken });
@@ -49,9 +47,11 @@ async function checkAlreadyExists(req,res,next) {
 }
 
 async function checkPassword(req,res,next){
-    const user=await User.findOne({email:req.body.email});
+    const user=await User.findOne({username:req.body.username});
+    console.log(user)
     if(!user){
-        res.json({error:"Not a registered email"});
+        res.json({error:"Not a registered user"});
+        return;
     }
     const passwordMatching=await bcrypt.compare(req.body.password,user.password);
     if(passwordMatching){
@@ -65,8 +65,7 @@ async function checkPassword(req,res,next){
 
 function generateToken(req,res){
     const user={
-        name:req.body.name,
-        email:req.body.email
+        username:req.body.username
     }
     const token=jwt.sign(user,process.env.AUTH_SECRET_KEY)
     res.cookie("token", token, {

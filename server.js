@@ -26,8 +26,8 @@ mongoose.connect(process.env.MONG_URL)
 
 app.post('/signup',checkAlreadyExists,(req,res)=>{
   console.log('signing up');
-  registerUser(req.body.name,req.body.email,req.body.password);
-  res.json('Signed Up');
+  registerUser(req.body.name,req.body.username,req.body.email,req.body.password);
+  generateToken(req,res);
 })
 
 app.post('/google-signup',async(req,res)=>{
@@ -41,7 +41,7 @@ app.post('/login',checkPassword,(req,res)=>{
 })
 
 app.get('/',checkLoggedinUser, (req, res) => {
-  console.log("get request")
+  // console.log("get request")
   res.json('Hello World!')
 })
 
