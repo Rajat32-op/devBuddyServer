@@ -2,6 +2,7 @@ const express = require('express')
 var cors=require('cors')
 const {checkLoggedinUser,generateToken,checkPassword,checkAlreadyExists, verifyGoogleToken}=require('./controllers/authenticate')
 const {registerUser}=require('./services/register')
+const {addUsername}=require('./services/editDatabase')
 const jwt=require('jsonwebtoken')
 const cookie_parser=require('cookie-parser')
 
@@ -37,6 +38,11 @@ app.post('/google-signup',async(req,res)=>{
 
 app.post('/login',checkPassword,(req,res)=>{
   console.log(req.user.name,"  logged in");
+  generateToken(req,res);
+})
+
+app.patch('/change-username',async(req,res)=>{
+  addUsername(req,res);
   generateToken(req,res);
 })
 
