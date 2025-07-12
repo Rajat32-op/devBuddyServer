@@ -4,7 +4,19 @@ const userSchema=new mongoose.Schema({
     name:String,
     email:String,
     password:String,
-    username:String
+    username:String,
+    followers:Array,
+    followering:Array,
+    profilePicture:String,
+    bio:String,
+    createdAt:{
+        type:Date,
+        default:Date.now
+    },
+    posts:Array,
+    savedPosts:Array,
+    notifications:Array,
+    
 })
 
 userSchema.pre('save',async function (next) {
