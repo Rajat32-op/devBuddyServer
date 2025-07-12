@@ -80,16 +80,21 @@ function generateToken(req, res) {
     res.json({ message: "Login successful" });
 }
 
-function checkLoggedinUser(req, res, next) {
+async function checkLoggedinUser(req, res, next) {
     const cookieToken = req.cookies.token;
     if (!cookieToken) {
-        res.json({ error: "Unauthorized" });
+        res.status(401).json({ error: "Unauthorized" });
         return;
     }
 
     try {
-        const user = jwt.verify(cookieToken, process.env.AUTH_SECRET_KEY);
-        req.user = user;
+        const username = jwt.verify(cookieToken, process.env.AUTH_SECRET_KEY).username;
+        req.user = await User.findOne( { username: username });
+        if (!req.user) {
+            res.json({ error: "Not a user" });
+            return;
+        }
+        
         next();
     }
     catch (err) {

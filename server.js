@@ -2,6 +2,7 @@ const express = require('express')
 var cors=require('cors')
 const {checkLoggedinUser,generateToken,checkPassword,checkAlreadyExists, verifyGoogleToken}=require('./controllers/authenticate')
 const {registerUser}=require('./services/register')
+const {createNewPost}=require('./services/addPost')
 const {addUsername,editProfile}=require('./services/editDatabase')
 const cookie_parser=require('cookie-parser')
 
@@ -40,13 +41,17 @@ app.post('/login',checkPassword,(req,res)=>{
   generateToken(req,res);
 })
 
-app.patch('/UserName-google',async(req,res)=>{
+app.patch('/addUserName-google',async(req,res)=>{
   addUsername(req,res);
   generateToken(req,res);
 })
 
 app.patch('/edit-profile',async(req,res)=>{
     editProfile(req,res);
+})
+
+app.post('/add-post',checkLoggedinUser,async (req, res) => {
+  createNewPost(req, res);
 })
 
 app.get('/',checkLoggedinUser, (req, res) => {
