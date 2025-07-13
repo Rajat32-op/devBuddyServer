@@ -1,7 +1,7 @@
 const Post = require('../models/Post');
 async function createNewPost(req,res){
     console.log(req.user);
-    const post = {
+    const post = {  
     userId: req.user._id,
     username: req.user.username,
     profilePicture: req.user.profilePicture? req.user.profilePicture : '',

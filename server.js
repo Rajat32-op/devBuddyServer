@@ -4,12 +4,14 @@ const {checkLoggedinUser,generateToken,checkPassword,checkAlreadyExists, verifyG
 const {registerUser}=require('./services/register')
 const {createNewPost}=require('./services/addPost')
 const {addUsername,editProfile}=require('./services/editDatabase')
+const {addNewFriend,sendFriendRequest}=require('./services/addFriend')
 const cookie_parser=require('cookie-parser')
 
 const app = express()
 const port = 3000
 require('dotenv').config();
 const mongoose = require('mongoose');
+const { addFriend } = require('./services/addFriend')
 
 var corsConfig={
   origin:"http://localhost:5173",
@@ -52,6 +54,14 @@ app.patch('/edit-profile',async(req,res)=>{
 
 app.post('/add-post',checkLoggedinUser,async (req, res) => {
   createNewPost(req, res);
+})
+
+app.post('/send-friend-request',checkLoggedinUser,async (req, res) => {
+  sendFriendRequest(req, res);
+})
+
+app.post('/add-friend',checkLoggedinUser,async (req, res) => {
+  addNewFriend(req, res);
 })
 
 app.get('/',checkLoggedinUser, (req, res) => {
