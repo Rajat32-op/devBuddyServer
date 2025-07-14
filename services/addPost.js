@@ -1,4 +1,5 @@
 const Post = require('../models/Post');
+const Comment = require('../models/Comment');
 async function createNewPost(req,res){
     console.log(req.user);
     const post = {  
@@ -45,6 +46,27 @@ function unlikePost(req,res){
     res.status(500).json({ message: 'Error unliking post' });
   }
 }
+
+async function addComment(req, res) {
+  const { postId, content } = req.body;
+  if (!postId || !content) {
+    return res.status(400).json({ message: 'Post ID and content are required' });
+  } 
+  try {
+    const comment = new Comment({
+      userId: req.user._id,
+      content,
+      postId
+    });
+    await comment.save();
+    
+    res.status(201).json({ message: 'Comment added successfully' });
+  } catch (error) {
+    console.error('Error adding comment:', error);
+    res.status(500).json({ message: 'Error adding comment' });
+  }
+}
+
 module.exports = {
-  createNewPost,likePost,unlikePost
+  createNewPost,likePost,unlikePost,addComment
 };

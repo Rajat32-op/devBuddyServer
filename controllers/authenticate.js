@@ -89,7 +89,7 @@ async function checkLoggedinUser(req, res, next) {
 
     try {
         const username = jwt.verify(cookieToken, process.env.AUTH_SECRET_KEY).username;
-        req.user = await User.findOne( { username: username });
+        req.user = await User.findOne( { username: username }).select('-password -__v');
         if (!req.user) {
             res.json({ error: "Not a user" });
             return;

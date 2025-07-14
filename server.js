@@ -2,7 +2,7 @@ const express = require('express')
 var cors=require('cors')
 const {checkLoggedinUser,generateToken,checkPassword,checkAlreadyExists, verifyGoogleToken}=require('./controllers/authenticate')
 const {registerUser}=require('./services/register')
-const {createNewPost,likePost,unlikePost}=require('./services/addPost')
+const {createNewPost,likePost,unlikePost,addComment}=require('./services/addPost')
 const {addUsername,editProfile}=require('./services/editDatabase')
 const {addNewFriend,sendFriendRequest}=require('./services/addFriend')
 const cookie_parser=require('cookie-parser')
@@ -72,6 +72,16 @@ app.post('/like-post',checkLoggedinUser,async (req, res) => {
 app.post('/unlike-post',checkLoggedinUser,async (req, res) => {
   // Logic to unlike a post will go here
   unlikePost(req, res);
+})
+
+app.post('/add-comment',checkLoggedinUser,async (req, res) => {
+  addComment(req, res);
+})
+
+app.get('/me',checkLoggedinUser,async (req, res) => {
+  // Logic to get notifications will go here
+  const user = req.user; // Exclude password and __v field
+  res.status(200).json(user);
 })
 
 app.get('/',checkLoggedinUser, (req, res) => {
