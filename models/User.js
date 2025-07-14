@@ -14,6 +14,7 @@ const userSchema=new mongoose.Schema({
     },
     posts:Array,
     savedPosts:Array,
+    likedPosts:Array,
     notifications:Object,
     
 })

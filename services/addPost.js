@@ -23,6 +23,28 @@ async function createNewPost(req,res){
     res.status(500).json({ message: 'Error creating post' });
   }
 }
+
+function likePost(req, res) {
+  const postId = req.body.postId;
+  try {
+    req.user.likedPosts.push(postId);
+    res.status(200).json({ message: 'Post liked successfully' });
+  } catch (error) {
+    console.error('Error liking post:', error);
+    res.status(500).json({ message: 'Error liking post' });
+  }
+}
+
+function unlikePost(req,res){
+  const postId = req.body.postId;
+  try {
+    req.user.likedPosts = req.user.likedPosts.filter((id) => id !== postId);
+    res.status(200).json({ message: 'Post unliked successfully'});
+  } catch (error) {
+    console.error('Error unliking post:', error);
+    res.status(500).json({ message: 'Error unliking post' });
+  }
+}
 module.exports = {
-  createNewPost
+  createNewPost,likePost,unlikePost
 };
