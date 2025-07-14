@@ -1,10 +1,17 @@
 const mongoose=require('mongoose')
 const bcrypt=require('bcrypt')
 const userSchema=new mongoose.Schema({
-    name:String,
+    name:{
+        type:String,
+        index:true,
+    },
     email:String,
     password:String,
-    username:String,
+    username:{
+        type:String,
+        index:true,
+        unique:true,
+    },
     friends:Array,
     profilePicture:String,
     bio:String,

@@ -3,7 +3,7 @@ var cors=require('cors')
 const {checkLoggedinUser,generateToken,checkPassword,checkAlreadyExists, verifyGoogleToken}=require('./controllers/authenticate')
 const {registerUser}=require('./services/register')
 const {createNewPost,likePost,unlikePost,addComment}=require('./services/addPost')
-const {addUsername,editProfile}=require('./services/editDatabase')
+const {addUsername,editProfile,searchUser}=require('./services/editDatabase')
 const {addNewFriend,sendFriendRequest}=require('./services/addFriend')
 const cookie_parser=require('cookie-parser')
 
@@ -65,12 +65,10 @@ app.post('/add-friend',checkLoggedinUser,async (req, res) => {
 })
 
 app.post('/like-post',checkLoggedinUser,async (req, res) => {
-  // Logic to like a post will go here
   likePost(req, res);
 })
 
 app.post('/unlike-post',checkLoggedinUser,async (req, res) => {
-  // Logic to unlike a post will go here
   unlikePost(req, res);
 })
 
@@ -79,9 +77,12 @@ app.post('/add-comment',checkLoggedinUser,async (req, res) => {
 })
 
 app.get('/me',checkLoggedinUser,async (req, res) => {
-  // Logic to get notifications will go here
-  const user = req.user; // Exclude password and __v field
+  const user = req.user; 
   res.status(200).json(user);
+})
+
+app.get('/search',checkLoggedinUser,async (req, res) => {
+  searchUser(req, res);
 })
 
 app.get('/',checkLoggedinUser, (req, res) => {
