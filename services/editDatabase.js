@@ -43,7 +43,7 @@ async function searchUser(req,res){
                 {username: reg},
                 {name: reg}
             ]
-        }).select('name username');
+        }).select('name username profilePicture _id');
         console.log(users);
         res.status(200).json(users);
     } catch(err) {
@@ -52,8 +52,26 @@ async function searchUser(req,res){
     }
 }
 
+async function getUser(req, res) {
+    const userId = req.query.id;
+  if (!userId) {
+    return res.status(400).json({ message: "User ID is required" });
+  }
+  try {
+    const user = await User.findById(userId).select('name username profilePicture _id bio friends posts');
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.status(200).json(user);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
+
 module.exports={
     addUsername,
     editProfile,
-    searchUser
+    searchUser,
+    getUser
 }

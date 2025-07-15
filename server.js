@@ -3,7 +3,7 @@ var cors=require('cors')
 const {checkLoggedinUser,generateToken,checkPassword,checkAlreadyExists, verifyGoogleToken}=require('./controllers/authenticate')
 const {registerUser}=require('./services/register')
 const {createNewPost,likePost,unlikePost,addComment}=require('./services/addPost')
-const {addUsername,editProfile,searchUser}=require('./services/editDatabase')
+const {addUsername,editProfile,searchUser,getUser}=require('./services/editDatabase')
 const {addNewFriend,sendFriendRequest}=require('./services/addFriend')
 const cookie_parser=require('cookie-parser')
 
@@ -83,6 +83,10 @@ app.get('/me',checkLoggedinUser,async (req, res) => {
 
 app.get('/search',checkLoggedinUser,async (req, res) => {
   searchUser(req, res);
+})
+
+app.get('get-user',async (req, res) => {
+  getUser(req, res);
 })
 
 app.get('/',checkLoggedinUser, (req, res) => {
