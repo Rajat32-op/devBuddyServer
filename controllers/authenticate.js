@@ -13,7 +13,7 @@ async function verifyGoogleToken(req, res) {
     });
 
     if (!ticket) {
-        res.json({ error: "Not Authorized" })
+        res.status(401).json({ message: "Not Authorized" })
         return;
     }
 
@@ -29,20 +29,28 @@ async function verifyGoogleToken(req, res) {
             name: name,
             email: email
         }
+        res.cookie("email", email, {
+            httpOnly: true,
+            secure: false,//set true when deploying
+            sameSite: "Lax",
+            maxAge: 24 * 60 * 60 * 1000
+        })
+        res.status(201).json({ message: "ask username" })
     }
-    res.cookie("email", email, {
-        httpOnly: true,
-        secure: false,//set true when deploying
-        sameSite: "Lax",
-        maxAge: 24 * 60 * 60 * 1000
-    })
-    res.json({ message: "Login successful" })
+    else{
+        req.body.username = user.username;
+        generateToken(req, res);
+    }
 }
 
 async function checkAlreadyExists(req, res, next) {
-    const user = await User.findOne({ email: req.body.email });
-    if (user) {
-        res.json({ error: "Already registered email" });
+    const userByMail = await User.findOne({ email: req.body.email });
+    const userByUsername = await User.findOne({ username: req.body.username });
+    if (userByMail) {
+        res.status(401).json({ message: "Already registered email" });
+    }
+    else if (userByUsername) {
+        res.status(401).json({ message: "Username already exists" });
     }
     else {
         next();
@@ -51,9 +59,8 @@ async function checkAlreadyExists(req, res, next) {
 
 async function checkPassword(req, res, next) {
     const user = await User.findOne({ username: req.body.username });
-    console.log(user)
     if (!user) {
-        res.json({ error: "Not a registered user" });
+        res.status(401).json({ message: "Not a registered user" });
         return;
     }
     const passwordMatching = await bcrypt.compare(req.body.password, user.password);
@@ -62,7 +69,7 @@ async function checkPassword(req, res, next) {
         next();
     }
     else {
-        res.json({ error: "Wrong password" });
+        res.status(400).json({ message: "Wrong password" });
     }
 }
 
@@ -77,13 +84,13 @@ function generateToken(req, res) {
         sameSite: "Lax",
         maxAge: 24 * 60 * 60 * 1000,
     });
-    res.json({ message: "Login successful" });
+    res.status(200).json({ message: "Login successful" });
 }
 
 async function checkLoggedinUser(req, res, next) {
     const cookieToken = req.cookies.token;
     if (!cookieToken) {
-        res.status(401).json({ error: "Unauthorized" });
+        res.status(401).json({ message: "Unauthorized" });
         return;
     }
 
@@ -91,14 +98,14 @@ async function checkLoggedinUser(req, res, next) {
         const username = jwt.verify(cookieToken, process.env.AUTH_SECRET_KEY).username;
         req.user = await User.findOne( { username: username }).select('-password -__v');
         if (!req.user) {
-            res.json({ error: "Not a user" });
+            res.status(401).json({ message: "Not a user" });
             return;
         }
         
         next();
     }
     catch (err) {
-        res.json({ error: "Not a user" });
+        res.status(401).json({ message: "Not a user" });
         return;
     }
 }

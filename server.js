@@ -29,17 +29,15 @@ mongoose.connect(process.env.MONG_URL)
 
 app.post('/signup',checkAlreadyExists,(req,res)=>{
   console.log('signing up');
-  registerUser(req.body.name,req.body.username,req.body.email,req.body.password);
+  registerUser(req.body.name,req.body.email,req.body.username,req.body.password);
   generateToken(req,res);
 })
 
 app.post('/google-signup',async(req,res)=>{
-  console.log("google signup");
   verifyGoogleToken(req,res);
 })
 
 app.post('/login',checkPassword,(req,res)=>{
-  console.log(req.user.name,"  logged in");
   generateToken(req,res);
 })
 
