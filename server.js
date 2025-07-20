@@ -28,7 +28,6 @@ mongoose.connect(process.env.MONG_URL)
 .catch(err => console.error('MongoDB connection error:', err));
 
 app.post('/signup',checkAlreadyExists,(req,res)=>{
-  console.log('signing up');
   registerUser(req.body.name,req.body.email,req.body.username,req.body.password);
   generateToken(req,res);
 })
@@ -39,6 +38,12 @@ app.post('/google-signup',async(req,res)=>{
 
 app.post('/login',checkPassword,(req,res)=>{
   generateToken(req,res);
+})
+
+app.post('/logout',(req,res)=>{
+  res.clearCookie('token');
+  res.clearCookie('email');
+  res.status(200).json({message:"Logged out successfully"});
 })
 
 app.patch('/addUserName-google',async(req,res)=>{
