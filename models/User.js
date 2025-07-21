@@ -12,17 +12,38 @@ const userSchema=new mongoose.Schema({
         index:true,
         unique:true,
     },
-    friends:Array,
-    profilePicture:String,
-    bio:String,
+    friends:{
+        type:Array,
+        default: []
+    },
+    profilePicture:{
+        type:String,
+        default:'https://example.com/default-profile-picture.png'
+    },
+    bio:{
+        type:String,
+        default:''
+    },
     createdAt:{
         type:Date,
         default:Date.now
     },
-    posts:Array,
-    savedPosts:Array,
-    likedPosts:Array,
-    notifications:Object,
+    posts:{
+        type:Array,
+        default:[]
+    },
+    savedPosts:{
+        type:Array,
+        default:[]
+    },
+    likedPosts:{
+        type:Array,
+        default:[]
+    },
+    notifications:{
+        type:Object,
+        default: {}
+    },
     
 })
 
