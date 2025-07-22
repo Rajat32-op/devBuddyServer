@@ -1,7 +1,6 @@
 const Post = require('../models/Post');
 const Comment = require('../models/Comment');
 async function createNewPost(req,res){
-    console.log(req.user);
     const post = {  
     userId: req.user._id,
     username: req.user.username,
@@ -16,9 +15,8 @@ async function createNewPost(req,res){
     createdAt: new Date()
   };
   try {
-    const newPost = new Post(post);
-    await newPost.save();
-    res.status(200).json({ message: 'Post created successfully', post: newPost  });
+    await Post.create(post);
+    res.status(200).json({ message: 'Post created successfully' });
   } catch (error) {
     console.error('Error creating post:', error);
     res.status(500).json({ message: 'Error creating post' });
@@ -67,6 +65,16 @@ async function addComment(req, res) {
   }
 }
 
+const getPosts = async (req, res) => {
+  try {
+    const posts = await Post.find({userId:req.query.userId}).sort({ createdAt: -1 });
+    res.status(200).json(posts);
+  } catch (error) {  
+    console.error('Error fetching posts:', error);
+    res.status(500).json({ message: 'Error fetching posts' });
+  }
+};
+
 module.exports = {
-  createNewPost,likePost,unlikePost,addComment
+  createNewPost,likePost,unlikePost,addComment,getPosts
 };

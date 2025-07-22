@@ -2,7 +2,7 @@ const express = require('express')
 var cors=require('cors')
 const {checkLoggedinUser,generateToken,checkPassword,checkAlreadyExists, verifyGoogleToken}=require('./controllers/authenticate')
 const {registerUser}=require('./services/register')
-const {createNewPost,likePost,unlikePost,addComment}=require('./services/addPost')
+const {createNewPost,likePost,unlikePost,addComment,getPosts}=require('./services/addPost')
 const {addUsername,editProfile,searchUser,getUser}=require('./services/editDatabase')
 const {addNewFriend,sendFriendRequest}=require('./services/addFriend')
 const cookie_parser=require('cookie-parser')
@@ -55,9 +55,6 @@ app.patch('/edit-profile',async(req,res)=>{
     editProfile(req,res);
 })
 
-app.post('/add-post',checkLoggedinUser,async (req, res) => {
-  createNewPost(req, res);
-})
 
 app.post('/send-friend-request',checkLoggedinUser,async (req, res) => {
   sendFriendRequest(req, res);
@@ -67,6 +64,10 @@ app.post('/add-friend',checkLoggedinUser,async (req, res) => {
   addNewFriend(req, res);
 })
 
+app.post('/add-post',checkLoggedinUser,async (req, res) => {
+  createNewPost(req, res);
+})
+
 app.post('/like-post',checkLoggedinUser,async (req, res) => {
   likePost(req, res);
 })
@@ -74,6 +75,10 @@ app.post('/like-post',checkLoggedinUser,async (req, res) => {
 app.post('/unlike-post',checkLoggedinUser,async (req, res) => {
   unlikePost(req, res);
 })
+
+app.get('/get-posts',checkLoggedinUser,async (req, res) => {
+  getPosts(req, res);
+});
 
 app.post('/add-comment',checkLoggedinUser,async (req, res) => {
   addComment(req, res);
