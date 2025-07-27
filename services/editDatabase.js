@@ -58,7 +58,7 @@ async function getUser(req, res) {
     return res.status(400).json({ message: "User ID is required" });
   }
   try {
-    const user = await User.findById(userId).select('name username profilePicture _id bio friends posts');
+    const user = await User.findById(userId).select('-password -v -notifications');
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }

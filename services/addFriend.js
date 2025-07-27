@@ -27,11 +27,11 @@ async function sendFriendRequest(req, res) {
 }
 
 async function addNewFriend(req, res) {
-    const  friendUsername  = req.body.friendUsername;
+    const  friendId  = req.body.friendId;
 
     try {
         const user = req.user;
-        const friend = await User.findOne({ username: friendUsername });
+        const friend = await User.findById(friendId);
 
         if (!friend) {
             return res.status(404).json({ message: 'User not found' });
@@ -40,10 +40,13 @@ async function addNewFriend(req, res) {
         if (user.friends.includes(friend._id)) {
             return res.status(400).json({ message: 'You are already friends with this user' });
         }
-
-        user.friends.push(friend.username);
-        friend.friends.push(user.username)
+        if (friend.notifications.some(notification => notification.type === 'friendRequest' && notification.from === user.username)) {
+            return res.status(400).json({ message: 'Friend request already sent' });
+        }
+        user.friends.push(friend._id);
+        friend.friends.push(user._id);
         await user.save();
+        await friend.save();
 
         res.status(200).json({ message: 'Friend added successfully' });
     } catch (error) {

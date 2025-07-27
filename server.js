@@ -93,7 +93,7 @@ app.get('/search',checkLoggedinUser,async (req, res) => {
   searchUser(req, res);
 })
 
-app.get('get-user',async (req, res) => {
+app.get('/get-user',async (req, res) => {
   getUser(req, res);
 })
 
