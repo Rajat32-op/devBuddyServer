@@ -18,7 +18,11 @@ const userSchema=new mongoose.Schema({
     },
     profilePicture:{
         type:String,
-        default:'https://example.com/default-profile-picture.png'
+        default:''
+    },
+    profilePictureId:{
+        type:String,
+        default:''
     },
     bio:{
         type:String,

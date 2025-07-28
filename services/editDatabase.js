@@ -1,34 +1,50 @@
 const User=require('../models/User');
 const jwt=require('jsonwebtoken');
+const {storage,cloudinary} = require('./cloudinary');
+const multer = require('multer');
+
+const upload = multer({ storage });
 
 async function addUsername(req,res){
     let email=req.cookies.email;
-    console.log(email)
     try{
         await User.updateOne({email:email},{
             $set:{username:req.body.username}
         })
     }
     catch(err){
-        console.log(err)
         res.json({message:"error"})
     }
 }
 
-async function editProfile(req,res){
-    let token=req.cookies.token;
-    const userName=jwt.verify(token,process.env.AUTH_SECRET_KEY).username;
-    const user=await User.findOne({username:userName});
-    if(!user){
-        return res.status(404).json({message:"User not found"});
+const uploadProfilePicture = async (req,res,next)=>{
+    if(req.user.profilePictureId) {
+        try {
+            await cloudinary.uploader.destroy(req.user.profilePictureId);
+        } catch (error) {
+            return res.status(500).json({ message: "Error deleting old profile picture" });
+        }
     }
+    upload.single('profilePicture')(req,res,(error)=>{
+        if (error) {
+            return res.status(400).json({ message: "File upload error" });
+        }
+        next();
+    });
+}
+
+async function editProfile(req,res){
+    const id=req.user._id;
     const updatedData={};
     if(req.body.name) updatedData.name=req.body.name;
     if(req.body.bio) updatedData.bio=req.body.bio;
-    if(req.body.profilePicture) updatedData.profilePicture=req.body.profilePicture;
-    await User.updateOne({username:userName},{$set:updatedData});
-    res.json({message:"Profile updated successfully"});//may have to send updated user.
-    
+    if(req.body.username) updatedData.username=req.body.username;
+    if(req.file && req.file.path) {
+        updatedData.profilePicture = req.file.path;
+    }
+    await User.updateOne({_id:id},{$set:updatedData});
+    res.status(200).json({message:"Profile updated successfully"});//may have to send updated user.
+
 }
 
 async function searchUser(req,res){
@@ -44,10 +60,8 @@ async function searchUser(req,res){
                 {name: reg}
             ]
         }).select('name username profilePicture _id');
-        console.log(users);
         res.status(200).json(users);
     } catch(err) {
-        console.error(err);
         res.status(500).json({message:"Internal server error"});
     }
 }
@@ -73,5 +87,6 @@ module.exports={
     addUsername,
     editProfile,
     searchUser,
-    getUser
+    getUser,
+    uploadProfilePicture
 }

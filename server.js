@@ -3,7 +3,7 @@ var cors=require('cors')
 const {checkLoggedinUser,generateToken,checkPassword,checkAlreadyExists, verifyGoogleToken}=require('./controllers/authenticate')
 const {registerUser}=require('./services/register')
 const {createNewPost,likePost,unlikePost,addComment,getPosts}=require('./services/addPost')
-const {addUsername,editProfile,searchUser,getUser}=require('./services/editDatabase')
+const {addUsername,editProfile,searchUser,getUser,uploadProfilePicture}=require('./services/editDatabase')
 const {addNewFriend,sendFriendRequest}=require('./services/addFriend')
 const cookie_parser=require('cookie-parser')
 
@@ -51,7 +51,7 @@ app.patch('/addUserName-google',async(req,res)=>{
   generateToken(req,res);
 })
 
-app.patch('/edit-profile',async(req,res)=>{
+app.patch('/edit-profile',checkLoggedinUser,uploadProfilePicture,async(req,res)=>{
     editProfile(req,res);
 })
 
