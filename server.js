@@ -27,8 +27,8 @@ mongoose.connect(process.env.MONG_URL)
 .then(() => console.log('MongoDB connected!'))
 .catch(err => console.error('MongoDB connection error:', err));
 
-app.post('/signup',checkAlreadyExists,(req,res)=>{
-  registerUser(req.body.name,req.body.email,req.body.username,req.body.password);
+app.post('/signup',checkAlreadyExists,async(req,res)=>{
+  await registerUser(req);
   generateToken(req,res);
 })
 

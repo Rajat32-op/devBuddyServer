@@ -8,9 +8,15 @@ const upload = multer({ storage });
 async function addUsername(req,res){
     let email=req.cookies.email;
     try{
-        await User.updateOne({email:email},{
-            $set:{username:req.body.username}
-        })
+        const user=await User.findOne({ email: email });
+        if(!user) return res.status(404).json({message:"User not found"});
+        if(user.username) return res.status(400).json({message:"Username already exists"});
+        if(!req.body.username || req.body.username.trim()==="") return res.status(400).json({message:"Username is required"});
+        const existingUser=await User.findOne({ username: req.body.username });
+        if(existingUser) return res.status(400).json({message:"Username already exists"});
+        user.username=req.body.username;
+        await user.save();
+        req.user=user;
     }
     catch(err){
         res.json({message:"error"})

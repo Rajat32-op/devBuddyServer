@@ -24,7 +24,8 @@ async function verifyGoogleToken(req, res) {
     let user = await User.findOne({ email });
 
     if (!user) {
-        registerUser(name,email)
+        req.body={name,email,username:"",password:""};
+        registerUser(req)
         user = {
             name: name,
             email: email
@@ -39,6 +40,7 @@ async function verifyGoogleToken(req, res) {
     }
     else{
         req.body.username = user.username;
+        req.user=user;
         generateToken(req, res);
     }
 }
@@ -75,7 +77,7 @@ async function checkPassword(req, res, next) {
 
 function generateToken(req, res) {
     const user = {
-        username: req.body.username
+        email: req.user.email
     }
     const token = jwt.sign(user, process.env.AUTH_SECRET_KEY)
     res.cookie("token", token, {
@@ -95,8 +97,8 @@ async function checkLoggedinUser(req, res, next) {
     }
 
     try {
-        const username = jwt.verify(cookieToken, process.env.AUTH_SECRET_KEY).username;
-        req.user = await User.findOne( { username: username }).select('-password -__v');
+        const email = jwt.verify(cookieToken, process.env.AUTH_SECRET_KEY).email;
+        req.user = await User.findOne( { email: email }).select('-password -__v');
         if (!req.user) {
             res.status(401).json({ message: "Not a user" });
             return;
