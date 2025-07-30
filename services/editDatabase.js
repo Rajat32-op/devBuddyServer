@@ -47,6 +47,7 @@ async function editProfile(req,res){
     if(req.body.username) updatedData.username=req.body.username;
     if(req.file && req.file.path) {
         updatedData.profilePicture = req.file.path;
+        updatedData.profilePictureId=req.file.filename
     }
     await User.updateOne({_id:id},{$set:updatedData});
     res.status(200).json({message:"Profile updated successfully"});//may have to send updated user.

@@ -2,7 +2,7 @@ const express = require('express')
 var cors=require('cors')
 const {checkLoggedinUser,generateToken,checkPassword,checkAlreadyExists, verifyGoogleToken}=require('./controllers/authenticate')
 const {registerUser}=require('./services/register')
-const {createNewPost,likePost,unlikePost,addComment,getPosts}=require('./services/addPost')
+const {createNewPost,likePost,unlikePost,addComment,getPosts,uploadImage}=require('./services/addPost')
 const {addUsername,editProfile,searchUser,getUser,uploadProfilePicture}=require('./services/editDatabase')
 const {addNewFriend,sendFriendRequest}=require('./services/addFriend')
 const cookie_parser=require('cookie-parser')
@@ -64,7 +64,7 @@ app.post('/add-friend',checkLoggedinUser,async (req, res) => {
   addNewFriend(req, res);
 })
 
-app.post('/add-post',checkLoggedinUser,async (req, res) => {
+app.post('/add-post',checkLoggedinUser,uploadImage,async (req, res) => {
   createNewPost(req, res);
 })
 

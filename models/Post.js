@@ -1,15 +1,47 @@
 const mongoose=require('mongoose')
 const postSchema=new mongoose.Schema({
-    userId:String,
+    userId:mongoose.Schema.Types.ObjectId,
     username:String,
-    profilePicture:String,
-    name:String,
-    caption:String,
-    image:String,
-    codeSnippet:String,
-    tags:Array,
-    likes:Number,
-    comments:Array,
+    profilePicture:{
+        type:String,
+        default:""
+    },
+    name:{
+        type:String,
+        default:""
+    },
+    caption:{
+        type:String,
+        default:""
+    },
+    imageUrl:{
+        type:Array,
+        default:[]
+    },
+    imageId:{
+        type:Array,
+        default:[]
+    },
+    language:{
+        type:Array,
+        default:[]
+    },
+    codeSnippet:{
+        type:Array,
+        default:[]
+    },
+    tags:{
+        type:Array,
+        default:[]
+    },
+    likes:{
+        type:Number,
+        default:0
+    },
+    comments:{
+        type:Array,
+        default:[]
+    },
     createdAt:{
         type:Date,
         default:Date.now
