@@ -78,6 +78,7 @@ async function getUser(req, res) {
   if (!userId) {
     return res.status(400).json({ message: "User ID is required" });
   }
+  console.log(userId);
   try {
     const user = await User.findById(userId).select('-password -v -notifications');
     if (!user) {
@@ -85,7 +86,7 @@ async function getUser(req, res) {
     }
     res.status(200).json(user);
   } catch (err) {
-    console.error(err);
+    console.error("internal server error");
     res.status(500).json({ message: "Internal server error" });
   }
 }
