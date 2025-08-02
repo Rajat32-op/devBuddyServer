@@ -1,6 +1,7 @@
 const Post = require('../models/Post');
 const Comment = require('../models/Comment');
 const User=require('../models/User')
+const Like = require('../models/Like');
 const { storage, cloudinary } = require('./cloudinary');
 const upload = require('multer')({ storage });
 
@@ -47,29 +48,6 @@ async function createNewPost(req, res) {
   }
 }
 
-function likePost(req, res) {
-  const postId = req.body.postId;
-  try {
-    req.user.likedPosts.push(postId);
-    res.status(200).json({ message: 'Post liked successfully' });
-  } catch (error) {
-    console.error('Error liking post:', error);
-    res.status(500).json({ message: 'Error liking post' });
-  }
-}
-
-async function unlikePost(req, res) {
-  const postId = req.body.postId;
-  try {
-    req.user.likedPosts = req.user.likedPosts.filter((id) => id !== postId);
-    await req.user.save();
-    res.status(200).json({ message: 'Post unliked successfully' });
-  } catch (error) {
-    console.error('Error unliking post:', error);
-    res.status(500).json({ message: 'Error unliking post' });
-  }
-}
-
 async function addComment(req, res) {
   const { postId, content } = req.body;
   if (!postId || !content) {
@@ -93,6 +71,12 @@ async function addComment(req, res) {
 const getPosts = async (req, res) => {
   try {
     const posts = await Post.find({ userId: req.query.userId }).sort({ createdAt: -1 });
+    const likedPosts=await Like.find({userId:req.user._id,postId:{$in:posts.map(post=>post._id)}}).select('postId');
+    const likedPostIds = likedPosts.map(like => like.postId.toString());
+    
+    posts.forEach(post => {
+      post.isLiked = likedPostIds.includes(post._id.toString());
+    });
     res.status(200).json(posts);
   } catch (error) {
     console.error('Error fetching posts:', error);
@@ -101,5 +85,5 @@ const getPosts = async (req, res) => {
 };
 
 module.exports = {
-  createNewPost, likePost, unlikePost, addComment, getPosts,uploadImage
+  createNewPost, addComment, getPosts,uploadImage
 };
