@@ -1,11 +1,12 @@
-const User=require('../models/User');
+const User = require('../models/User');
+const Notification = require('../models/Notification');
 
 async function sendFriendRequest(req, res) {
-    const friendId = req.body.id; 
+    const friendId = req.body.id;
     try {
         const user = req.user;
         const friend = await User.findById(friendId);
-        
+
         if (!friend) {
             return res.status(404).json({ message: 'User not found' });
         }
@@ -14,14 +15,14 @@ async function sendFriendRequest(req, res) {
             return res.status(400).json({ message: 'You are already friends with this user' });
         }
 
-        const newRequest={type:'friend_request',from:user.username,createdAt:new Date()}
-        friend.notifications.push(newRequest);
+        const newRequest = { type: 'friend_request', from: user.username, fromId: user._id, to: friendId, createdAt: new Date() }
         friend.friend_request_received.push(user._id);
         user.friend_request_sent.push(friend._id);
-        
+
+        await Notification.create(newRequest);
         await user.save();
         await friend.save();
-        
+
         res.status(200).json({ message: 'Friend request sent successfully' });
     } catch (error) {
         console.error('Error sending friend request:', error);
@@ -30,7 +31,7 @@ async function sendFriendRequest(req, res) {
 }
 
 async function addNewFriend(req, res) {
-    const  friendId  = req.body.friendId;
+    const friendId = req.body.friendId;
 
     try {
         const user = req.user;
@@ -39,17 +40,16 @@ async function addNewFriend(req, res) {
         if (!friend) {
             return res.status(404).json({ message: 'User not found' });
         }
-
-        if (user.friends.includes(friend._id)) {
-            return res.status(400).json({ message: 'You are already friends with this user' });
-        }
-        if (friend.notifications.some(notification => notification.type === 'friendRequest' && notification.from === user.username)) {
-            return res.status(400).json({ message: 'Friend request already sent' });
-        }
         user.friends.push(friend._id);
-        user.friend_request_received= user.friend_request_received.filter(id => id.toString() !== friend._id.toString());
+        user.friend_request_received = user.friend_request_received.filter(id => id.toString() !== friend._id.toString());
         friend.friend_request_sent = user.friend_request_sent.filter(id => id.toString() !== friend._id.toString());
         friend.friends.push(user._id);
+
+        await Notification.findOneAndUpdate(
+            { type: 'friend_request', fromId: friend._id, to: user._id },
+            { $set: { isRead: true, deleteAt: new Date(Date.now()) } },
+            { new: true }
+        );
         await user.save();
         await friend.save();
 
@@ -60,7 +60,7 @@ async function addNewFriend(req, res) {
     }
 }
 
-async function removeFriend(req,res){
+async function removeFriend(req, res) {
     const friendId = req.body.friendId;
     try {
         const user = req.user;
@@ -95,6 +95,11 @@ async function declineFriendRequest(req, res) {
         user.friend_request_received = user.friend_request_received.filter(id => id.toString() !== friend._id.toString());
         friend.friend_request_sent = friend.friend_request_sent.filter(id => id.toString() !== user._id.toString());
 
+        await Notification.findOneAndUpdate(
+            { type: 'friend_request', fromId: friend._id, to: user._id },
+            { $set: { isRead: true, deleteAt: new Date(Date.now()) } },
+            { new: true }
+        );
         await user.save();
         await friend.save();
 
@@ -106,5 +111,5 @@ async function declineFriendRequest(req, res) {
 }
 
 module.exports = {
-    addNewFriend,sendFriendRequest,removeFriend,declineFriendRequest
+    addNewFriend, sendFriendRequest, removeFriend, declineFriendRequest
 };

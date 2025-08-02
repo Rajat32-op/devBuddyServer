@@ -12,6 +12,7 @@ const port = 3000
 require('dotenv').config();
 const mongoose = require('mongoose');
 const { addFriend } = require('./services/addFriend')
+const { getNotifications } = require('./services/addNotification')
 
 var corsConfig={
   origin:"http://localhost:5173",
@@ -103,6 +104,10 @@ app.get('/search',checkLoggedinUser,async (req, res) => {
 
 app.get('/get-user',async (req, res) => {
   await getUser(req, res);
+})
+
+app.get('/notifications',checkLoggedinUser,async (req, res) => {
+  await getNotifications(req,res);
 })
 
 app.get('/',checkLoggedinUser, (req, res) => {
