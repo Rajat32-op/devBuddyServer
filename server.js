@@ -4,7 +4,7 @@ const {checkLoggedinUser,generateToken,checkPassword,checkAlreadyExists, verifyG
 const {registerUser}=require('./services/register')
 const {createNewPost,likePost,unlikePost,addComment,getPosts,uploadImage}=require('./services/addPost')
 const {addUsername,editProfile,searchUser,getUser,uploadProfilePicture}=require('./services/editDatabase')
-const {addNewFriend,sendFriendRequest}=require('./services/addFriend')
+const {addNewFriend,sendFriendRequest, removeFriend, declineFriendRequest}=require('./services/addFriend')
 const cookie_parser=require('cookie-parser')
 
 const app = express()
@@ -29,15 +29,15 @@ mongoose.connect(process.env.MONG_URL)
 
 app.post('/signup',checkAlreadyExists,async(req,res)=>{
   await registerUser(req);
-  generateToken(req,res);
+  await generateToken(req,res);
 })
 
 app.post('/google-signup',async(req,res)=>{
-  verifyGoogleToken(req,res);
+  await verifyGoogleToken(req,res);
 })
 
-app.post('/login',checkPassword,(req,res)=>{
-  generateToken(req,res);
+app.post('/login',checkPassword,async(req,res)=>{
+  await generateToken(req,res);
 })
 
 app.post('/logout',(req,res)=>{
@@ -47,58 +47,66 @@ app.post('/logout',(req,res)=>{
 })
 
 app.patch('/addUserName-google',async(req,res)=>{
-  addUsername(req,res);
-  generateToken(req,res);
+  await addUsername(req,res);
+  await generateToken(req,res);
 })
 
 app.patch('/edit-profile',checkLoggedinUser,uploadProfilePicture,async(req,res)=>{
-    editProfile(req,res);
+  await editProfile(req,res);
 })
 
 
 app.post('/send-friend-request',checkLoggedinUser,async (req, res) => {
-  sendFriendRequest(req, res);
+  await sendFriendRequest(req, res);
+})
+
+app.post('/decline-friend',checkLoggedinUser,async(req,res)=>{
+  await declineFriendRequest(req,res);
 })
 
 app.post('/add-friend',checkLoggedinUser,async (req, res) => {
-  addNewFriend(req, res);
+  await addNewFriend(req, res);
+})
+
+app.post('/remove-friend',checkLoggedinUser,async (req,res)=>{
+  await removeFriend(req,res);
 })
 
 app.post('/add-post',checkLoggedinUser,uploadImage,async (req, res) => {
-  createNewPost(req, res);
+  await createNewPost(req, res);
 })
 
 app.post('/like-post',checkLoggedinUser,async (req, res) => {
-  likePost(req, res);
+  await likePost(req, res);
 })
 
 app.post('/unlike-post',checkLoggedinUser,async (req, res) => {
-  unlikePost(req, res);
+  await unlikePost(req, res);
 })
 
 app.get('/get-posts',checkLoggedinUser,async (req, res) => {
-  getPosts(req, res);
+  await getPosts(req, res);
 });
 
 app.post('/add-comment',checkLoggedinUser,async (req, res) => {
-  addComment(req, res);
+  await addComment(req, res);
 })
 
-app.get('/me',checkLoggedinUser,async (req, res) => {
+app.get('/me',checkLoggedinUser,(req, res) => {
   const user = req.user; 
   res.status(200).json(user);
 })
 
 app.get('/search',checkLoggedinUser,async (req, res) => {
-  searchUser(req, res);
+  await searchUser(req, res);
 })
 
 app.get('/get-user',async (req, res) => {
-  getUser(req, res);
+  await getUser(req, res);
 })
 
 app.get('/',checkLoggedinUser, (req, res) => {
-  res.json('Hello World!')
+  res.status(200).json('Hello World!')
 })
 
 app.listen(port, () => {

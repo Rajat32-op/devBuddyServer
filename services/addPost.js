@@ -58,10 +58,11 @@ function likePost(req, res) {
   }
 }
 
-function unlikePost(req, res) {
+async function unlikePost(req, res) {
   const postId = req.body.postId;
   try {
     req.user.likedPosts = req.user.likedPosts.filter((id) => id !== postId);
+    await req.user.save();
     res.status(200).json({ message: 'Post unliked successfully' });
   } catch (error) {
     console.error('Error unliking post:', error);

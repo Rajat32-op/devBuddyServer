@@ -16,6 +16,14 @@ const userSchema=new mongoose.Schema({
         type:Array,
         default: []
     },
+    friend_request_sent:{
+        type:Array,
+        default:[]
+    },
+    friend_request_received:{
+        type:Array,
+        default:[]
+    },
     profilePicture:{
         type:String,
         default:''
@@ -40,13 +48,9 @@ const userSchema=new mongoose.Schema({
         type:Array,
         default:[]
     },
-    likedPosts:{
-        type:Array,
-        default:[]
-    },
     notifications:{
-        type:Object,
-        default: {}
+        type:Array,
+        default: []
     },
     
 },{minimize: false});

@@ -10,16 +10,17 @@ async function addUsername(req,res){
     try{
         const user=await User.findOne({ email: email });
         if(!user) return res.status(404).json({message:"User not found"});
-        if(user.username) return res.status(400).json({message:"Username already exists"});
+        if(user.username) return res.status(200).json({message:"Username already exists"});
         if(!req.body.username || req.body.username.trim()==="") return res.status(400).json({message:"Username is required"});
         const existingUser=await User.findOne({ username: req.body.username });
         if(existingUser) return res.status(400).json({message:"Username already exists"});
         user.username=req.body.username;
         await user.save();
         req.user=user;
+        
     }
     catch(err){
-        res.json({message:"error"})
+        return res.status(400).json({message:"error"})
     }
 }
 
@@ -60,7 +61,7 @@ async function searchUser(req,res){
     
     try{
         const reg=new RegExp(query, 'i'); // Case-insensitive search
-        console.log(reg);
+        
         const users=await User.find({
             $or: [
                 {username: reg},
@@ -78,7 +79,7 @@ async function getUser(req, res) {
   if (!userId) {
     return res.status(400).json({ message: "User ID is required" });
   }
-  console.log(userId);
+  
   try {
     const user = await User.findById(userId).select('-password -v -notifications');
     if (!user) {
