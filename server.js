@@ -2,7 +2,7 @@ const express = require('express')
 var cors=require('cors')
 const {checkLoggedinUser,generateToken,checkPassword,checkAlreadyExists, verifyGoogleToken}=require('./controllers/authenticate')
 const {registerUser}=require('./services/register')
-const {createNewPost,addComment,getPosts,uploadImage}=require('./services/addPost')
+const {createNewPost,addComment,getPosts,uploadImage, savePost, getSavedPosts}=require('./services/addPost')
 const {addUsername,editProfile,searchUser,getUser,uploadProfilePicture}=require('./services/editDatabase')
 const {addNewFriend,sendFriendRequest, removeFriend, declineFriendRequest}=require('./services/addFriend')
 const {likePost,unlikePost}=require('./services/addlike')
@@ -89,6 +89,14 @@ app.post('/unlike-post',checkLoggedinUser,async (req, res) => {
 app.get('/get-posts',checkLoggedinUser,async (req, res) => {
   await getPosts(req, res);
 });
+
+app.get('/get-saved-posts',checkLoggedinUser,async(req,res)=>{
+  getSavedPosts(req,res);
+})
+
+app.post('/save-post',checkLoggedinUser,async (req,res)=>{
+  await savePost(req,res);
+})
 
 app.post('/add-comment',checkLoggedinUser,async (req, res) => {
   await addComment(req, res);

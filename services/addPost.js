@@ -84,6 +84,27 @@ const getPosts = async (req, res) => {
   }
 };
 
+async function getSavedPosts(req,res){
+  try{
+    const posts=Post.find({_id:{$in:req.user.savedPosts}});
+    res.status(200).json(posts);
+  }
+  catch{
+    console.error('Error fetching posts:', error);
+    res.status(500).json({ message: 'Error fetching posts' });
+  }
+}
+
+async function savePost(req,res){
+  const postId=req.body.postId;
+  if(!postId){
+    return res.status(400).json({message:"Post Id needed"});
+  }
+  req.user.savedPosts.push(postId);
+  await req.user.save();
+  return res.status(200)
+}
+
 module.exports = {
-  createNewPost, addComment, getPosts,uploadImage
+  createNewPost, addComment, getPosts,uploadImage,savePost,getSavedPosts
 };

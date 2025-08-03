@@ -1,4 +1,4 @@
-const Notification=require('../models/Notification');z
+const Notification=require('../models/Notification');
 
 async function getNotifications(req, res) {
     try {
