@@ -86,12 +86,12 @@ const getPosts = async (req, res) => {
 
 async function getSavedPosts(req,res){
   try{
-    const posts=Post.find({_id:{$in:req.user.savedPosts}});
-    res.status(200).json(posts);
+    const posts=await Post.find({_id:{$in:req.user.savedPosts}});
+    return res.status(200).json(posts);
   }
-  catch{
+  catch(error){
     console.error('Error fetching posts:', error);
-    res.status(500).json({ message: 'Error fetching posts' });
+    return res.status(500).json({ message: 'Error fetching posts' });
   }
 }
 
@@ -105,6 +105,22 @@ async function savePost(req,res){
   return res.status(200)
 }
 
+async function unsavePost(req,res){
+  const postId=req.body.postId;
+  try{
+
+    if(!postId){
+      return res.status(400).json({message:"Post id needed"})
+    }
+    req.user.savedPosts=req.user.savedPosts.filter(id=>id.toString()!==postId.toString());
+    await req.user.save();
+    return res.status(200);
+  }
+  catch(err){
+    console.log(err);
+  }
+} 
+
 module.exports = {
-  createNewPost, addComment, getPosts,uploadImage,savePost,getSavedPosts
+  createNewPost, addComment, getPosts,uploadImage,savePost,getSavedPosts,unsavePost
 };
