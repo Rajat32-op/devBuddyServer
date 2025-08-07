@@ -1,4 +1,6 @@
 const express = require('express')
+const http=require('http')
+const {Server}=require('socket.io')
 var cors=require('cors')
 const {checkLoggedinUser,generateToken,checkPassword,checkAlreadyExists, verifyGoogleToken}=require('./controllers/authenticate')
 const {registerUser}=require('./services/register')
@@ -7,20 +9,29 @@ const {addUsername,editProfile,searchUser,getUser,uploadProfilePicture}=require(
 const {addNewFriend,sendFriendRequest, removeFriend, declineFriendRequest}=require('./services/addFriend')
 const {likePost,unlikePost}=require('./services/addlike')
 const cookie_parser=require('cookie-parser')
+const { addFriend } = require('./services/addFriend')
+const { getNotifications } = require('./services/addNotification')
+const Message=require('./models/Message')
+const User=require('./models/User')
+require('dotenv').config();
 
 const app = express()
 const port = 3000
-require('dotenv').config();
 const mongoose = require('mongoose');
-const { addFriend } = require('./services/addFriend')
-const { getNotifications } = require('./services/addNotification')
+const { deleteChat, getchats } = require('./services/handleMessage')
+const server=http.createServer(app);
+const io=new Server(server,{
+  cors:{
+    origin:"http://localhost:5173",
+    credentials:true
+  }
+})
 
 var corsConfig={
   origin:"http://localhost:5173",
   credentials:true
 }
 app.use(cors(corsConfig));
-
 app.use(cookie_parser())
 app.use(express.json())
 
@@ -28,6 +39,53 @@ app.use(express.json())
 mongoose.connect(process.env.MONG_URL)
 .then(() => console.log('MongoDB connected!'))
 .catch(err => console.error('MongoDB connection error:', err));
+
+let onlineUsers=new Map()
+io.on('connection',socket=>{
+  const userId=socket.handshake.query.userId;
+  onlineUsers.set(userId,true);
+  socket.on('joinRoom',(roomId)=>{
+    socket.join(roomId);
+  })
+
+  socket.on('typing', ({ roomId, userId }) => {
+    socket.to(roomId).emit('userTyping', { userId });
+  });
+
+  socket.on('stopTyping', ({ roomId, userId }) => {
+    socket.to(roomId).emit('userStoppedTyping', { userId });
+  });
+
+  socket.on('sendMessage', async ({ roomId, senderId, receiverId = null, message, isGroup }) => {
+    const newMsg = new Message({
+      roomId,
+      senderId,
+      receiverId: isGroup ? null : receiverId,
+      message,
+      isGroup,
+      seenBy: [senderId] // sender always sees their message
+    });
+    await newMsg.save();
+
+    // Broadcast to room
+    io.to(roomId).emit('receiveMessage', newMsg);
+  });
+
+  socket.on('messageSeen', async ({ messageId, userId }) => {
+    const msg = await Message.findById(messageId);
+    if (msg && !msg.seenBy.includes(userId)) {
+      msg.seenBy.push(userId);
+      await msg.save();
+      io.to(msg.roomId).emit('messageSeenUpdate', {
+        messageId,
+        seenBy: msg.seenBy
+      });
+    }
+  });
+  socket.on('disconnext',()=>{
+    onlineUsers.delete(userId);
+  })
+})
 
 app.post('/signup',checkAlreadyExists,async(req,res)=>{
   await registerUser(req);
@@ -123,10 +181,30 @@ app.get('/notifications',checkLoggedinUser,async (req, res) => {
   await getNotifications(req,res);
 })
 
-app.get('/',checkLoggedinUser, (req, res) => {
+app.get('/get-chats',checkLoggedinUser,async(req,res)=>{
+  await getchats(req,res);
+})
+
+app.get('/get-messages',checkLoggedinUser,async(req,res)=>{
+  const messages = await Message.find({ roomId: req.query.roomId ,deletedBy:{$ne:req.user._id}}).sort({ createdAt: 1 });
+  res.json(messages);
+})
+
+app.post('/delete-chat',checkLoggedinUser,async(req,res)=>{
+  await deleteChat(req,res);
+})
+
+app.get('/get-online-friends',checkLoggedinUser,async(req,res)=>{
+  const onlineFriendsId=req.user.friends.filter(f=>{onlineUsers.has(f)});
+  const onlineFriends=await User.find({_id:{$in:onlineFriendsId}})
+  res.status(200).json(onlineFriends)
+})
+
+app.get('/',checkLoggedinUser, async(req, res) => {
   res.status(200).json('Hello World!')
 })
 
-app.listen(port, () => {
+server.listen(port, () => {
   console.log(`Example app listening on port ${port}`)
 })
+
