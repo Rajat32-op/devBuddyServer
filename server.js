@@ -43,7 +43,7 @@ mongoose.connect(process.env.MONG_URL)
 let onlineUsers=new Map()
 io.on('connection',socket=>{
   const userId=socket.handshake.query.userId;
-  onlineUsers.set(userId,true);
+  onlineUsers.set(userId.toString(),true);
   socket.on('joinRoom',(roomId)=>{
     socket.join(roomId);
   })
@@ -195,8 +195,9 @@ app.post('/delete-chat',checkLoggedinUser,async(req,res)=>{
 })
 
 app.get('/get-online-friends',checkLoggedinUser,async(req,res)=>{
-  const onlineFriendsId=req.user.friends.filter(f=>{onlineUsers.has(f)});
+  const onlineFriendsId=req.user.friends.filter(f=>{return onlineUsers.has(f.toString())});
   const onlineFriends=await User.find({_id:{$in:onlineFriendsId}})
+  // console.log(onlineUsers.keys())
   res.status(200).json(onlineFriends)
 })
 
