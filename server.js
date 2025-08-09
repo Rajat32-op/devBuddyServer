@@ -4,10 +4,11 @@ const {Server}=require('socket.io')
 var cors=require('cors')
 const {checkLoggedinUser,generateToken,checkPassword,checkAlreadyExists, verifyGoogleToken}=require('./controllers/authenticate')
 const {registerUser}=require('./services/register')
-const {createNewPost,addComment,getPosts,uploadImage, savePost, getSavedPosts, unsavePost}=require('./services/addPost')
+const {createNewPost,getPosts,uploadImage, savePost, getSavedPosts, unsavePost}=require('./services/addPost')
 const {addUsername,editProfile,searchUser,getUser,uploadProfilePicture}=require('./services/editDatabase')
 const {addNewFriend,sendFriendRequest, removeFriend, declineFriendRequest}=require('./services/addFriend')
 const {likePost,unlikePost}=require('./services/addlike')
+const {addComment}=require('./services/handleComment')
 const cookie_parser=require('cookie-parser')
 const { addFriend } = require('./services/addFriend')
 const { getNotifications } = require('./services/addNotification')
@@ -18,7 +19,7 @@ require('dotenv').config();
 const app = express()
 const port = 3000
 const mongoose = require('mongoose');
-const { deleteChat, getchats } = require('./services/handleMessage')
+const { deleteChat, getchats, uploadChatImage } = require('./services/handleMessage')
 const server=http.createServer(app);
 const io=new Server(server,{
   cors:{
@@ -56,13 +57,20 @@ io.on('connection',socket=>{
     socket.to(roomId).emit('userStoppedTyping', { userId });
   });
 
-  socket.on('sendMessage', async ({ roomId, senderId, receiverId = null, message, isGroup }) => {
+  socket.on('sendMessage', async ({ roomId, senderId, receiverId = null, message, isGroup,imageUrls,
+      imageIds,
+      codes,
+      codeLang }) => {
     const newMsg = new Message({
       roomId,
       senderId,
       receiverId: isGroup ? null : receiverId,
       message,
       isGroup,
+      imageUrls,
+      imageIds,
+      codeSnippet:codes,
+      languages:codeLang,
       seenBy: [senderId] // sender always sees their message
     });
     await newMsg.save();
@@ -188,6 +196,17 @@ app.get('/get-chats',checkLoggedinUser,async(req,res)=>{
 app.get('/get-messages',checkLoggedinUser,async(req,res)=>{
   const messages = await Message.find({ roomId: req.query.roomId ,deletedBy:{$ne:req.user._id}}).sort({ createdAt: 1 });
   res.json(messages);
+})
+
+app.post('/upload-chat-image',checkLoggedinUser,uploadChatImage,(req,res)=>{
+  let imageUrls=[]
+  let imageIds=[]
+  console.log(req.files)
+  if(req.files){
+    imageUrls=req.files.map(file=>file.path);
+    imageIds=req.files.map(file=>file.filename);
+  }
+  res.status(200).json({urls:imageUrls,ids:imageIds});
 })
 
 app.post('/delete-chat',checkLoggedinUser,async(req,res)=>{

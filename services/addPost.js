@@ -48,26 +48,6 @@ async function createNewPost(req, res) {
   }
 }
 
-async function addComment(req, res) {
-  const { postId, content } = req.body;
-  if (!postId || !content) {
-    return res.status(400).json({ message: 'Post ID and content are required' });
-  }
-  try {
-    const comment = new Comment({
-      userId: req.user._id,
-      content,
-      postId
-    });
-    await comment.save();
-
-    res.status(201).json({ message: 'Comment added successfully' });
-  } catch (error) {
-    console.error('Error adding comment:', error);
-    res.status(500).json({ message: 'Error adding comment' });
-  }
-}
-
 const getPosts = async (req, res) => {
   try {
     const posts = await Post.find({ userId: req.query.userId }).sort({ createdAt: -1 });
@@ -122,5 +102,5 @@ async function unsavePost(req,res){
 } 
 
 module.exports = {
-  createNewPost, addComment, getPosts,uploadImage,savePost,getSavedPosts,unsavePost
+  createNewPost, getPosts,uploadImage,savePost,getSavedPosts,unsavePost
 };

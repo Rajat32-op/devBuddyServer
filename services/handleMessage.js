@@ -1,6 +1,17 @@
-const { response } = require('express');
 const Message = require('../models/Message');
 const User = require('../models/User')
+const {storage}=require('./cloudinary')
+const upload=require('multer')({storage});
+
+const uploadChatImage=async(req,res,next)=>{
+    console.log('hello');
+    upload.array('images',10)(req,res,(err)=>{
+    if(err){
+      return res.status(400).json(err)
+    }
+    next();
+  });
+}
 
 async function getchats(req, res) {
     try{
@@ -76,5 +87,5 @@ async function deleteChat(req, res) {
 }
 
 module.exports = {
-    deleteChat,getchats
+    deleteChat,getchats,uploadChatImage
 }
