@@ -10,9 +10,9 @@ async function addComment(req, res) {
       userId: req.user._id,
       username:username,
       name:name,
-      profilePicture:profilePicture?profilePicture:"",
-      content,
-      postId
+      profilePicture:profilePicture,
+      content:content,
+      postId:postId
     });
     await comment.save();
     res.status(200).json({ message: 'Comment added successfully' });
@@ -22,6 +22,22 @@ async function addComment(req, res) {
   }
 }
 
+async function getComments(req,res){
+    const {postId}=req.query;
+    if(!postId){
+        return res.status(401);
+    }
+    try{
+        const comments=await Comment.find({postId:postId}).sort({createdAt:-1});
+        res.status(200).json(comments);
+    }
+    catch(err){
+        console.log(err);
+        return res.status(500);
+    }
+
+}
+
 module.exports={
-    addComment
+    addComment,getComments
 }

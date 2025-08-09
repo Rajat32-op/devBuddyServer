@@ -8,7 +8,7 @@ const {createNewPost,getPosts,uploadImage, savePost, getSavedPosts, unsavePost}=
 const {addUsername,editProfile,searchUser,getUser,uploadProfilePicture}=require('./services/editDatabase')
 const {addNewFriend,sendFriendRequest, removeFriend, declineFriendRequest}=require('./services/addFriend')
 const {likePost,unlikePost}=require('./services/addlike')
-const {addComment}=require('./services/handleComment')
+const {addComment, getComments}=require('./services/handleComment')
 const cookie_parser=require('cookie-parser')
 const { addFriend } = require('./services/addFriend')
 const { getNotifications } = require('./services/addNotification')
@@ -170,6 +170,10 @@ app.post('/unsave-post',checkLoggedinUser,async(req,res)=>{
 
 app.post('/add-comment',checkLoggedinUser,async (req, res) => {
   await addComment(req, res);
+})
+
+app.get('/get-comments',checkLoggedinUser,async(req,res)=>{
+  await getComments(req,res);
 })
 
 app.get('/me',checkLoggedinUser,(req, res) => {
