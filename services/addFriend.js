@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const Notification = require('../models/Notification');
+const { rawListeners } = require('../models/Comment');
 
 async function sendFriendRequest(req, res) {
     const friendId = req.body.id;
@@ -110,6 +111,25 @@ async function declineFriendRequest(req, res) {
     }
 }
 
+async function getSuggestion(req,res){
+    const alreadyDone=req.user.friends;
+    alreadyDone.push(req.user._id);
+    try{
+
+        const suggestedUsers=await User.aggregate([
+            {$match:{_id:{$nin:alreadyDone}}},
+            {$sample:{size:5}},
+            {$project:{username:1,name:1,_id:1,profilePicture:1}}
+        ])
+        res.status(200).json(suggestedUsers);
+    }
+    catch(err){
+        console.log(err);
+        res.status(500)
+    }
+
+}
+
 module.exports = {
-    addNewFriend, sendFriendRequest, removeFriend, declineFriendRequest
+    addNewFriend, sendFriendRequest, removeFriend, declineFriendRequest,getSuggestion
 };

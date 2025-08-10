@@ -6,7 +6,7 @@ const {checkLoggedinUser,generateToken,checkPassword,checkAlreadyExists, verifyG
 const {registerUser}=require('./services/register')
 const {createNewPost,getPosts,uploadImage, savePost, getSavedPosts, unsavePost}=require('./services/addPost')
 const {addUsername,editProfile,searchUser,getUser,uploadProfilePicture}=require('./services/editDatabase')
-const {addNewFriend,sendFriendRequest, removeFriend, declineFriendRequest}=require('./services/addFriend')
+const {addNewFriend,sendFriendRequest, removeFriend, declineFriendRequest, getSuggestion}=require('./services/addFriend')
 const {likePost,unlikePost}=require('./services/addlike')
 const {addComment, getComments}=require('./services/handleComment')
 const cookie_parser=require('cookie-parser')
@@ -222,6 +222,10 @@ app.get('/get-online-friends',checkLoggedinUser,async(req,res)=>{
   const onlineFriends=await User.find({_id:{$in:onlineFriendsId}})
   // console.log(onlineUsers.keys())
   res.status(200).json(onlineFriends)
+})
+
+app.get('/get-suggestion',checkLoggedinUser,async(req,res)=>{
+  await getSuggestion(req,res);
 })
 
 app.get('/',checkLoggedinUser, async(req, res) => {
