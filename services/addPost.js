@@ -1,5 +1,5 @@
 const Post = require('../models/Post');
-const Comment = require('../models/Comment');
+const TagStats = require('../models/TagStats');
 const User=require('../models/User')
 const Like = require('../models/Like');
 const { storage, cloudinary } = require('./cloudinary');
@@ -41,6 +41,15 @@ async function createNewPost(req, res) {
     await User.findByIdAndUpdate(req.user._id, {
       $push: { posts: newPost._id }
     });
+    if(!Array.isArray(post.tags))post.tags=[post.tags]
+    post.tags.forEach(async(tag)=>{
+      await TagStats.updateOne(
+        {tag:tag},
+        {$inc:{count:1}},
+        {upsert:true}
+      )
+    })
+    
     res.status(200).json({ message: 'Post created successfully' });
   } catch (error) {
     console.error('Error creating post:', error);
@@ -101,6 +110,17 @@ async function unsavePost(req,res){
   }
 } 
 
+async function getTrendingTags(req,res){
+  try{
+    const trendingTags=await TagStats.find().sort({count:-1}).limit(5)
+    return res.status(200).json(trendingTags)
+  }
+  catch(err){
+    console.log(err);
+    return res.status(500)
+  }
+}
+
 module.exports = {
-  createNewPost, getPosts,uploadImage,savePost,getSavedPosts,unsavePost
+  createNewPost, getPosts,uploadImage,savePost,getSavedPosts,unsavePost,getTrendingTags
 };

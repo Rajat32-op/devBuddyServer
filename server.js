@@ -4,7 +4,7 @@ const {Server}=require('socket.io')
 var cors=require('cors')
 const {checkLoggedinUser,generateToken,checkPassword,checkAlreadyExists, verifyGoogleToken}=require('./controllers/authenticate')
 const {registerUser}=require('./services/register')
-const {createNewPost,getPosts,uploadImage, savePost, getSavedPosts, unsavePost}=require('./services/addPost')
+const {createNewPost,getPosts,uploadImage, savePost, getSavedPosts, unsavePost, getTrendingTags}=require('./services/addPost')
 const {addUsername,editProfile,searchUser,getUser,uploadProfilePicture}=require('./services/editDatabase')
 const {addNewFriend,sendFriendRequest, removeFriend, declineFriendRequest, getSuggestion}=require('./services/addFriend')
 const {likePost,unlikePost}=require('./services/addlike')
@@ -226,6 +226,10 @@ app.get('/get-online-friends',checkLoggedinUser,async(req,res)=>{
 
 app.get('/get-suggestion',checkLoggedinUser,async(req,res)=>{
   await getSuggestion(req,res);
+})
+
+app.get('/get-trending-tags',checkLoggedinUser,async(req,res)=>{
+  await getTrendingTags(req,res);
 })
 
 app.get('/',checkLoggedinUser, async(req, res) => {
