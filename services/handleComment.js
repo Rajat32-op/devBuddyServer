@@ -38,6 +38,18 @@ async function getComments(req,res){
 
 }
 
+async function deleteComment(req,res){
+  const {id}=req.body;
+  try{
+    await Comment.findByIdAndDelete(id);
+    res.status(200).json({message:"deleted successfuly"})
+  }
+  catch(err){
+    console.log(err);
+    res.status(500).json({message:"error occured"})
+  }
+}
+
 module.exports={
-    addComment,getComments
+    addComment,getComments,deleteComment
 }

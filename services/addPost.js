@@ -37,11 +37,11 @@ async function createNewPost(req, res) {
     createdAt: new Date()
   };
   try {
+    if(!Array.isArray(post.tags))post.tags=[post.tags]
     const newPost=await Post.create(post);
     await User.findByIdAndUpdate(req.user._id, {
       $push: { posts: newPost._id }
     });
-    if(!Array.isArray(post.tags))post.tags=[post.tags]
     post.tags.forEach(async(tag)=>{
       await TagStats.updateOne(
         {tag:tag},
@@ -110,6 +110,29 @@ async function unsavePost(req,res){
   }
 } 
 
+async function deletePost(req,res){
+  const {postId}=req.body;
+  try{
+    const post=await Post.findById(postId);
+    post.tags.forEach(async(tag)=>{
+      const stat=await TagStats.findOneAndUpdate(
+        {tag:tag},
+        {$inc:{count:-1}},
+        {new:true}
+      )
+      if(stat && stat.count<=0){
+        await TagStats.deleteOne({tag})
+      }
+    })
+    await Post.findByIdAndDelete(postId);
+    return res.status(200).json({message:'Dne'});
+  }
+  catch(err){
+    console.log(err);
+    return res.status(500).json({message:"Error occured"})
+  }
+}
+
 async function getTrendingTags(req,res){
   try{
     const trendingTags=await TagStats.find().sort({count:-1}).limit(5)
@@ -122,5 +145,5 @@ async function getTrendingTags(req,res){
 }
 
 module.exports = {
-  createNewPost, getPosts,uploadImage,savePost,getSavedPosts,unsavePost,getTrendingTags
+  createNewPost, getPosts,uploadImage,savePost,getSavedPosts,unsavePost,getTrendingTags,deletePost
 };

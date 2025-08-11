@@ -4,11 +4,11 @@ const {Server}=require('socket.io')
 var cors=require('cors')
 const {checkLoggedinUser,generateToken,checkPassword,checkAlreadyExists, verifyGoogleToken}=require('./controllers/authenticate')
 const {registerUser}=require('./services/register')
-const {createNewPost,getPosts,uploadImage, savePost, getSavedPosts, unsavePost, getTrendingTags}=require('./services/addPost')
+const {createNewPost,getPosts,uploadImage, savePost, getSavedPosts, unsavePost, getTrendingTags, deletePost}=require('./services/addPost')
 const {addUsername,editProfile,searchUser,getUser,uploadProfilePicture}=require('./services/editDatabase')
 const {addNewFriend,sendFriendRequest, removeFriend, declineFriendRequest, getSuggestion}=require('./services/addFriend')
 const {likePost,unlikePost}=require('./services/addlike')
-const {addComment, getComments}=require('./services/handleComment')
+const {addComment, getComments, deleteComment}=require('./services/handleComment')
 const cookie_parser=require('cookie-parser')
 const { addFriend } = require('./services/addFriend')
 const { getNotifications } = require('./services/addNotification')
@@ -144,6 +144,10 @@ app.post('/add-post',checkLoggedinUser,uploadImage,async (req, res) => {
   await createNewPost(req, res);
 })
 
+app.post('/delete-post',checkLoggedinUser,async(req,res)=>{
+  await deletePost(req,res);
+})
+
 app.post('/like-post',checkLoggedinUser,async (req, res) => {
   await likePost(req, res);
 })
@@ -174,6 +178,10 @@ app.post('/add-comment',checkLoggedinUser,async (req, res) => {
 
 app.get('/get-comments',checkLoggedinUser,async(req,res)=>{
   await getComments(req,res);
+})
+
+app.post('/delete-comment',checkLoggedinUser,async(req,res)=>{
+  await deleteComment(req,res);
 })
 
 app.get('/me',checkLoggedinUser,(req, res) => {
