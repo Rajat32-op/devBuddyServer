@@ -1,6 +1,7 @@
 const Message = require('../models/Message');
 const User = require('../models/User')
-const { storage ,cloudinary} = require('./cloudinary')
+const Group = require('../models/Group')
+const { storage, cloudinary } = require('./cloudinary')
 const upload = require('multer')({ storage });
 
 const uploadChatImage = async (req, res, next) => {
@@ -15,15 +16,16 @@ const uploadChatImage = async (req, res, next) => {
 
 async function getchats(req, res) {
     try {
-
-        const recentChats = await Message.aggregate([
+        // --- 1. PRIVATE CHATS ---
+        const recentPrivateChats = await Message.aggregate([
             {
                 $match: {
                     $or: [
                         { senderId: req.user._id },
                         { receiverId: req.user._id }
                     ],
-                    deletedBy: { $ne: req.user._id }
+                    deletedBy: { $ne: req.user._id },
+                    isGroup: { $ne: true } // exclude group messages
                 }
             },
             {
@@ -44,37 +46,83 @@ async function getchats(req, res) {
                     }
                 }
             },
-            {
-                $sort: { createdAt: -1 }
-            },
+            { $sort: { createdAt: -1 } },
             {
                 $group: {
                     _id: "$otherUser",
                     lastMessageTime: { $first: "$createdAt" }
                 }
-            },
-            {
-                $sort: { lastMessageTime: -1 }
             }
         ]);
 
+        const users = await User.find({
+            _id: { $in: recentPrivateChats.map(c => c._id) }
+        }).select("_id name username profilePicture");
 
-        const users = await User.find({ _id: { $in: recentChats.map(c => c._id) } }).select("_id name username profilePicture")
-        const userMap = {};
-        users.forEach(user => userMap[user._id.toString()] = user);
-        // Merge
-        const sortedChats = recentChats.map(c => ({ ...userMap[c._id.toString()]._doc, lastMessageTime: c.lastMessageTime }));
+        const privateChats = recentPrivateChats.map(c => {
+            const user = users.find(u => u._id.toString() === c._id.toString());
+            return {
+                type: "private",
+                _id: [c._id.toString(),req.user._id.toString()].sort().join("-"),
+                name: user?.name,
+                username: user?.username,
+                receiverId:user?._id,
+                profilePicture: user?.profilePicture,
+                lastMessageTime: c.lastMessageTime,
+                isGroup:false
+            };
+        });
 
-        return res.status(200).json(sortedChats)
-    }
-    catch (err) {
+        // --- 2. GROUP CHATS ---
+        const myGroups = await Group.find({ members: req.user._id })
+            .select("_id name members");
+
+        const groupIds = myGroups.map(g => g._id.toString());
+        // console.log(myGroups)
+
+        const recentGroupMessages = await Message.aggregate([
+            {
+                $match: {
+                    roomId: { $in: groupIds },
+                    deletedBy: { $ne: req.user._id }
+                }
+            },
+            { $sort: { createdAt: -1 } },
+            {
+                $group: {
+                    _id: "$roomId",
+                    lastMessageTime: { $first: "$createdAt" }
+                }
+            }
+        ]);
+
+        const groupChats = recentGroupMessages.map(gm => {
+            const group = myGroups.find(gr => gr._id.toString() === gm._id);
+            return {
+                type: "group",
+                _id: group._id,
+                name: group?.name,
+                members: group?.members,
+                lastMessageTime: gm.lastMessageTime,
+                isGroup:true
+            };
+        });
+
+        // --- 3. MERGE & SORT ---
+        const allChats = [...privateChats, ...groupChats].sort(
+            (a, b) => new Date(b.lastMessageTime) - new Date(a.lastMessageTime)
+        );
+        // console.log(allChats)
+        return res.status(200).json(allChats);
+    } catch (err) {
         console.log(err);
-        res.status(500)
+        res.status(500).json({ error: "Failed to fetch chats" });
     }
 }
 
+
 async function deleteChat(req, res) {
-    const { roomId } = req.body;
+    const { roomId ,isGroup} = req.body;
 
     try {
         // Step 1: Mark messages as deleted by current user
@@ -84,9 +132,14 @@ async function deleteChat(req, res) {
         );
 
         // Step 2: Find messages to permanently delete (deletedBy size = 2)
+        let grpSize=2;
+        if(isGroup){
+            const group=await Group.findById(roomId);
+            grpSize=group.members.length;
+        }
         const toDelete = await Message.find({
             roomId: roomId,
-            $expr: { $eq: [{ $size: "$deletedBy" }, 2] }
+            $expr: { $eq: [{ $size: "$deletedBy" }, grpSize] }
         });
 
         if (toDelete.length > 0) {
@@ -105,6 +158,9 @@ async function deleteChat(req, res) {
 
             // Step 5: Delete messages from DB
             await Message.deleteMany({ _id: { $in: toDelete.map(m => m._id) } });
+            if(isGroup){
+                await Group.deleteOne({_id:roomId})
+            }
         }
 
         return res.status(200).json({ message: "successful" });
@@ -115,6 +171,39 @@ async function deleteChat(req, res) {
     }
 }
 
+async function createGroup(req, res) {
+    let{ members, name } = req.body;
+    members.push(req.user._id.toString());
+    try {
+
+        const newGroup = new Group({
+            name: name,
+            members: members
+        })
+        await newGroup.save();
+        return res.status(200).json({ group: newGroup });
+    }
+    catch (err) {
+        return res.status(500).json({ message: "Error" })
+    }
+}
+
+async function getGroupMembers(req, res) {
+    try {
+        const roomId=req.query.id;
+        const group=await Group.findById(roomId).select('members');
+        if(!group){
+            return res.status(404).json({message:"Group not found"})
+        }
+        const members=await User.find({_id:{$in:group.members}})
+        return res.status(200).json(members)
+    }
+    catch (err) {
+        console.log(err);
+        return res.status(500).json({ message: "error occured" });
+    }
+}
+
 module.exports = {
-    deleteChat, getchats, uploadChatImage
+    deleteChat, getchats, uploadChatImage, getGroupMembers, createGroup
 }
