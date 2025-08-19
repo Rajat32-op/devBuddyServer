@@ -31,7 +31,7 @@ async function createNewPost(req, res) {
     codeSnippet: req.body.codeSnippet ? req.body.codeSnippet : [],
     tags: req.body.tags ? req.body.tags : [],
     likes: 0,
-    comments: [],
+    comments: 0,
     imageUrl: imageUrls,
     imageId: imageIds,
     createdAt: new Date()

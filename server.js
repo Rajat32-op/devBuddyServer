@@ -20,6 +20,7 @@ const app = express()
 const port = 3000
 const mongoose = require('mongoose');
 const { deleteChat, getchats, uploadChatImage, createGroup, getGroupMembers } = require('./services/handleMessage')
+const feedAlgo = require('./services/handleFeed')
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
@@ -256,7 +257,7 @@ app.get('/get-trending-tags', checkLoggedinUser, async (req, res) => {
 })
 
 app.get('/', checkLoggedinUser, async (req, res) => {
-  res.status(200).json('Hello World!')
+  feedAlgo(req,res);
 })
 
 server.listen(port, () => {
