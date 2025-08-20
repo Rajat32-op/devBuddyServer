@@ -33,7 +33,7 @@ async function verifyGoogleToken(req, res) {
         res.cookie("email", email, {
             httpOnly: true,
             secure: true,//set true when deploying
-            sameSite: "Lax",
+            sameSite: "None",
             maxAge: 24 * 60 * 60 * 1000
         })
         res.status(201).json({ message: "ask username" })
@@ -83,7 +83,7 @@ function generateToken(req, res) {
     res.cookie("token", token, {
         httpOnly: true,
         secure: true, //set true when deploying
-        sameSite: "Lax",
+        sameSite: "None",
         maxAge: 24 * 60 * 60 * 1000,
     });
     res.status(200).json({ message: "Login successful" });
