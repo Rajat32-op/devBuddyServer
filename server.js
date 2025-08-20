@@ -24,16 +24,28 @@ const feedAlgo = require('./services/handleFeed')
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:5173","*"],
+    origin: ["http://localhost:5173","https://the-intellecta.netlify.app"],
     credentials: true
   }
 })
 
-var corsConfig = {
-  origin: "http://localhost:5173",
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://the-intellecta.netlify.app"
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    // allow requests with no origin (like Postman or curl)
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   credentials: true
-}
-app.use(cors(corsConfig));
+}));
+
 app.use(cookie_parser())
 app.use(express.json())
 

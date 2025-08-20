@@ -32,7 +32,7 @@ async function verifyGoogleToken(req, res) {
         }
         res.cookie("email", email, {
             httpOnly: true,
-            secure: false,//set true when deploying
+            secure: true,//set true when deploying
             sameSite: "Lax",
             maxAge: 24 * 60 * 60 * 1000
         })
@@ -82,7 +82,7 @@ function generateToken(req, res) {
     const token = jwt.sign(user, process.env.AUTH_SECRET_KEY)
     res.cookie("token", token, {
         httpOnly: true,
-        secure: false, //set true when deploying
+        secure: true, //set true when deploying
         sameSite: "Lax",
         maxAge: 24 * 60 * 60 * 1000,
     });
