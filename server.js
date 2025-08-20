@@ -221,7 +221,6 @@ app.get('/get-messages', checkLoggedinUser, async (req, res) => {
 app.post('/upload-chat-image', checkLoggedinUser, uploadChatImage, (req, res) => {
   let imageUrls = []
   let imageIds = []
-  console.log(req.files)
   if (req.files) {
     imageUrls = req.files.map(file => file.path);
     imageIds = req.files.map(file => file.filename);
@@ -244,7 +243,6 @@ app.get('/get-group-members', checkLoggedinUser, async (req, res) => {
 app.get('/get-online-friends', checkLoggedinUser, async (req, res) => {
   const onlineFriendsId = req.user.friends.filter(f => { return onlineUsers.has(f.toString()) });
   const onlineFriends = await User.find({ _id: { $in: onlineFriendsId } })
-  // console.log(onlineUsers.keys())
   res.status(200).json(onlineFriends)
 })
 

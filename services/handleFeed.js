@@ -91,7 +91,6 @@ async function feedAlgo(req, res) {
       const last = posts[posts.length - 1];
       nextCursor = { lastScore: last.score, lastCreatedAt: last.createdAt };
     }
-console.log(posts);
     res.status(200).json({ posts, nextCursor });
   } catch (err) {
     console.error(err);

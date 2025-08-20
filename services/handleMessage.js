@@ -5,7 +5,6 @@ const { storage, cloudinary } = require('./cloudinary')
 const upload = require('multer')({ storage });
 
 const uploadChatImage = async (req, res, next) => {
-    console.log('hello');
     upload.array('images', 10)(req, res, (err) => {
         if (err) {
             return res.status(400).json(err)
@@ -78,7 +77,6 @@ async function getchats(req, res) {
             .select("_id name members");
 
         const groupIds = myGroups.map(g => g._id.toString());
-        // console.log(myGroups)
 
         const recentGroupMessages = await Message.aggregate([
             {
@@ -112,7 +110,6 @@ async function getchats(req, res) {
         const allChats = [...privateChats, ...groupChats].sort(
             (a, b) => new Date(b.lastMessageTime) - new Date(a.lastMessageTime)
         );
-        // console.log(allChats)
         return res.status(200).json(allChats);
     } catch (err) {
         console.log(err);
